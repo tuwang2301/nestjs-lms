@@ -70,7 +70,7 @@ export class ClassController {
   @Delete('delete/:id')
   @ApiOperation({ summary: 'Delete Class by id' })
   @Authorities(Authority.Admin)
-  async deleteClass(@Param('id') id: number) {
+  async deleteClasss(@Param('id') id: number) {
     try {
       const result = await this.classService.deleteClass(id);
       return new ResponseObject(true, 'Delete successfully', result);
