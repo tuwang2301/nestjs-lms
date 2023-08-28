@@ -7,9 +7,6 @@ export class AddStudentDto {
   full_name: string;
 
   @ApiProperty()
-  @IsEmail()
-  email: string;
-  @ApiProperty()
   @IsDateString()
   dob: Date;
   @ApiProperty({ name: 'gender', enum: Gender })

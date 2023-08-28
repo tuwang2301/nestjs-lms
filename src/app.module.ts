@@ -19,6 +19,7 @@ import { RoleModule } from './role/role.module';
 import { SubjectModule } from './subject/subject.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { AuthModule } from './auth/auth.module';
+import { Emailverification } from "./auth/emailverification.entity";
 
 @Module({
   imports: [
@@ -39,19 +40,20 @@ import { AuthModule } from './auth/auth.module';
         Course,
         Class,
         Enrollment,
+        Emailverification
       ],
       synchronize: true,
       autoLoadEntities: true,
     }),
+    AuthModule,
     UsersModule,
+    RoleModule,
     StudentModule,
+    TeacherModule,
+    SubjectModule,
     ClassModule,
     CourseModule,
     EnrollmentModule,
-    RoleModule,
-    SubjectModule,
-    TeacherModule,
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

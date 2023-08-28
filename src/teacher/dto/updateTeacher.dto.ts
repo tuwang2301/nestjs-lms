@@ -19,11 +19,6 @@ export class UpdateTeacherDto {
   full_name?: string;
 
   @ApiProperty()
-  @IsEmail()
-  @IsOptional()
-  email?: string;
-
-  @ApiProperty()
   @IsEnum(Gender)
   @IsOptional()
   gender?: Gender;

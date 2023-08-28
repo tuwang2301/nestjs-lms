@@ -9,10 +9,10 @@ import {
 import { Users } from '../users/users.entity';
 import { Conduct, Gender, Rank } from '../common/globalEnum';
 import { Enrollment } from '../enrollment/enrollment.entity';
-import { BaseEntity } from "../common/BaseEntity";
+import { BaseEntity } from '../common/BaseEntity';
 
 @Entity()
-export class Student extends BaseEntity{
+export class Student extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -22,9 +22,6 @@ export class Student extends BaseEntity{
 
   @Column()
   full_name: string;
-
-  @Column({ unique: true })
-  email: string;
 
   @Column({
     type: 'enum',
@@ -50,6 +47,7 @@ export class Student extends BaseEntity{
     nullable: true,
   })
   conduct: Conduct;
+
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
   enrollments: Enrollment[];

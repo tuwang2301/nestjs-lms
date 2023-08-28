@@ -23,13 +23,6 @@ export class StudentService {
 
   async addStudent(studentDTO: AddStudentDto) {
     try {
-      if (
-        (await this.studentRepository.findOne({
-          where: { email: studentDTO.email },
-        })) != null
-      ) {
-        throw new Error(`Student with ${studentDTO.email} already exist`);
-      }
       return await this.studentRepository.save(studentDTO);
     } catch (error) {
       throw error;

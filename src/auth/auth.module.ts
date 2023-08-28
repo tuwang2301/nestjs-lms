@@ -12,11 +12,18 @@ import { Role } from '../role/role.entity';
 import { Users } from '../users/users.entity';
 import { Student } from '../student/student.entity';
 import { Teacher } from '../teacher/teacher.entity';
-import { AuthoritiesGuard } from "./authorities.guard";
+import { AuthoritiesGuard } from './authorities.guard';
+import { Emailverification } from './emailverification.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Role, Users, Student, Teacher]),
+    TypeOrmModule.forFeature([
+      Role,
+      Users,
+      Student,
+      Teacher,
+      Emailverification,
+    ]),
     UsersModule,
     JwtModule.register({
       global: true,

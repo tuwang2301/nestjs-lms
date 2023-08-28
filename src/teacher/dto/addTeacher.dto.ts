@@ -18,10 +18,6 @@ export class addTeacherDto {
   full_name: string;
 
   @ApiProperty()
-  @IsEmail()
-  email: string;
-
-  @ApiProperty()
   @IsEnum(Gender)
   gender: Gender;
 

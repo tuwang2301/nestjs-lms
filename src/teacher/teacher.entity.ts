@@ -26,9 +26,6 @@ export class Teacher extends BaseEntity {
   @Column()
   full_name: string;
 
-  @Column({ unique: true })
-  email: string;
-
   @Column()
   gender: Gender;
 

@@ -25,12 +25,6 @@ export class TeacherService {
 
   async createTeacher(teacherDTO: UpdateTeacherDto) {
     try {
-      const found = await this.teacherRepository.findOneBy({
-        email: teacherDTO.email,
-      });
-      if (found !== null) {
-        throw new Error(`Email ${teacherDTO.email} has been taken`);
-      }
       return await this.teacherRepository.save(teacherDTO);
     } catch (e) {
       throw e;

@@ -1,48 +1,59 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToOne,
-  ManyToMany,
-  JoinTable,
-  AfterLoad,
-} from 'typeorm';
-import { Teacher } from '../teacher/teacher.entity';
-import { Role } from '../role/role.entity';
-import { Student } from '../student/student.entity';
-import { UsersDTO } from './dto/users.dto';
-import { BaseEntity } from '../common/BaseEntity';
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    OneToOne,
+    ManyToMany,
+    JoinTable,
+    AfterLoad
+} from "typeorm";
+import { Teacher } from "../teacher/teacher.entity";
+import { Role } from "../role/role.entity";
+import { Student } from "../student/student.entity";
+import { UsersDTO } from "./dto/users.dto";
+import { BaseEntity } from "../common/BaseEntity";
 
 @Entity()
 export class Users extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column({ unique: true })
-  username: string;
+    @Column({ unique: true })
+    username: string;
 
-  @Column()
-  password: string;
+    @Column()
+    password: string;
 
-  @ManyToMany(() => Role, (role) => role.users)
-  @JoinTable()
-  roles: Role[];
+    @Column({
+        unique: true
+    })
+    email: string;
 
-  @OneToOne(() => Student, (student) => student.user)
-  student: Student;
+    @Column({
+        type: "boolean",
+        default: "false"
+    })
+    is_valid: boolean;
 
-  @OneToOne(() => Teacher, (teacher) => teacher.user)
-  teacher: Teacher;
+    @ManyToMany(() => Role, (role) => role.users)
+    @JoinTable()
+    roles: Role[];
 
-  @AfterLoad()
-  async nullChecks() {
-    if (!this.roles) {
-      this.roles = [];
+    @OneToOne(() => Student, (student) => student.user)
+    student: Student;
+
+    @OneToOne(() => Teacher, (teacher) => teacher.user)
+    teacher: Teacher;
+
+    @AfterLoad()
+    async nullChecks() {
+        if (!this.roles) {
+            this.roles = [];
+        }
     }
-  }
 
-  parseUsers(userDTO: UsersDTO) {
-    this.username = userDTO.username;
-    this.password = userDTO.password;
-  }
+    parseUsers(userDTO: UsersDTO) {
+        this.username = userDTO.username;
+        this.password = userDTO.password;
+    }
 }

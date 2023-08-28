@@ -9,11 +9,6 @@ export class UpdateStudentDto {
   full_name?: string;
 
   @ApiProperty()
-  @IsEmail()
-  @Optional()
-  email?: string;
-
-  @ApiProperty()
   @IsDateString()
   @Optional()
   dob?: Date;
