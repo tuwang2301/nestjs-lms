@@ -1,4 +1,4 @@
-export default {
+export default{
     "db":{
         "authSource": null,
         "database": "school_test",
@@ -16,10 +16,11 @@ export default {
         "expiresIn": 36000000
     },
     "mail":{
+        "service": "Gmail",
         "host": "<smtp-host>",
         "port": "<port>",
         "secure": false,
         "user": "quangtu2301@gmail.com",
-        "pass": "Ilove@2003"
+        "pass": "tcvpyneqxrlxufnr"
     }
 }

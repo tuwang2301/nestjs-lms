@@ -13,7 +13,7 @@ import { Users } from '../users/users.entity';
 import { Student } from '../student/student.entity';
 import { Teacher } from '../teacher/teacher.entity';
 import { AuthoritiesGuard } from './authorities.guard';
-import { Emailverification } from './emailverification.entity';
+import { EmailVerification } from './emailVerification.entity';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { Emailverification } from './emailverification.entity';
       Users,
       Student,
       Teacher,
-      Emailverification,
+      EmailVerification,
     ]),
     UsersModule,
     JwtModule.register({

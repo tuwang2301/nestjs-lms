@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Query } from "@nestjs/common";
 import { UpdateSubjectDto } from './dto/updateSubject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Subject } from './subject.entity';
 import { Repository } from 'typeorm';
 import { AddSubjectDto } from "./dto/addSubject.dto";
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { PageMetaDto } from "../pagination/pageMeta.dto";
+import { PageDto } from "../pagination/page.dto";
 
 @Injectable()
 export class SubjectService {
@@ -11,9 +14,32 @@ export class SubjectService {
     @InjectRepository(Subject)
     private readonly subjectRepository: Repository<Subject>,
   ) {}
-  async getAllSubjects() {
+  async getAllSubjects(
+    pageOptionsDto: PageOptionsDto,
+    subjectFilter: UpdateSubjectDto,
+  ) {
     try {
-      return await this.subjectRepository.find();
+      const queryBuilder = this.subjectRepository.createQueryBuilder('subject');
+      const skip = (pageOptionsDto.page - 1)*pageOptionsDto.take;
+
+      queryBuilder
+        .orderBy('subject.id',pageOptionsDto.order)
+        .skip(skip)
+        .take(pageOptionsDto.take)
+
+      if(subjectFilter.name){
+        queryBuilder.where('subject.name like :name', {name: `%${subjectFilter.name}%`})
+      }
+
+      if(subjectFilter.credit){
+        queryBuilder.andWhere('subject.credit = :credit', {credit: subjectFilter.credit})
+      }
+
+      const itemCount = await queryBuilder.getCount();
+      const {entities} = await queryBuilder.getRawAndEntities();
+
+      const pageMeta = new PageMetaDto({pageOptionsDto, itemCount});
+      return new PageDto(entities,pageMeta);
     } catch (e) {
       throw e;
     }

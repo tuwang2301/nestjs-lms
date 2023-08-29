@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, ValidationPipe } from "@nestjs/common";
 import { StudentService } from "./student.service";
 import { ResponseObject } from "../common/ResponseObject";
 import { AddStudentDto } from "./dto/addStudent.dto";
@@ -6,6 +6,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { UpdateStudentDto } from "./dto/updateStudent.dto";
 import { Authorities } from "../auth/authorities.decorator";
 import { Authority } from "../common/globalEnum";
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { StudentFilterDto } from "./dto/student.filter.dto";
 
 @Controller('student')
 @ApiTags('Students')
@@ -15,9 +17,12 @@ export class StudentController {
 
   @Get()
   @ApiOperation({ summary: 'Get all students' })
-  async getListStudents() {
+  async getListStudents(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() studentFilter: StudentFilterDto,
+  ) {
     try {
-      const result = await this.studentService.getListStudents();
+      const result = await this.studentService.getListStudents(pageOptionsDto, studentFilter);
       return new ResponseObject(true, 'All students', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

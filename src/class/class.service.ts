@@ -4,6 +4,10 @@ import { Not, Repository } from 'typeorm';
 import { Class } from './class.entity';
 import { AddClassDTO } from './dto/addClass.dto';
 import { UpdateClassDTO } from './dto/updateClass.dto';
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { ClassFilterDto } from "./dto/class.filter.dto";
+import { PageMetaDto } from "../pagination/pageMeta.dto";
+import { PageDto } from "../pagination/page.dto";
 
 @Injectable()
 export class ClassService {
@@ -11,9 +15,36 @@ export class ClassService {
     @InjectRepository(Class)
     private readonly classRepository: Repository<Class>,
   ) {}
-  async getAllClasses() {
+  async getAllClasses(
+    pageOptionsDto: PageOptionsDto,
+    classFilter: ClassFilterDto
+  ) {
     try {
-      return await this.classRepository.find();
+     const queryBuilder = this.classRepository.createQueryBuilder('class');
+
+      const skip = (pageOptionsDto.page - 1)*pageOptionsDto.take;
+
+     queryBuilder
+       .orderBy('class.id', pageOptionsDto.order)
+       .skip(skip)
+       .take(pageOptionsDto.take)
+
+     if(classFilter.name){
+       queryBuilder.where('class.name like :name', {name: `%${classFilter.name}%`});
+     }
+
+     if(classFilter.student_number){
+       queryBuilder.andWhere('class.student_number = :student_number', {student_number: classFilter.student_number});
+     }
+
+     const itemCount = await queryBuilder.getCount();
+     const {entities} = await queryBuilder.getRawAndEntities();
+
+     const pageMetaDto = new PageMetaDto({pageOptionsDto,itemCount});
+
+     return new PageDto(entities,pageMetaDto);
+
+
     } catch (e) {
       throw e;
     }

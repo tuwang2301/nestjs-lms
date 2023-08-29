@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   Post,
-  Put,
-} from '@nestjs/common';
+  Put, Query
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { EnrollmentService } from './enrollment.service';
 import { ResponseObject } from '../common/ResponseObject';
@@ -14,6 +14,7 @@ import { AddEnrollmentDTO } from '../Enrollment/dto/addEnrollment.dto';
 import { UpdateEnrollmentDTO } from '../Enrollment/dto/updateEnrollment.dto';
 import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
 
 @Controller('enrollment')
 @ApiTags('Enrollment')
@@ -24,9 +25,12 @@ export class EnrollmentController {
   @Get()
   @ApiOperation({ summary: 'Get all Enrollments' })
   @Authorities(Authority.Admin)
-  async getAllEnrollments() {
+  async getAllEnrollments(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() enrollmentFilter: UpdateEnrollmentDTO,
+  ) {
     try {
-      const result = await this.enrollmentService.getAllEnrollments();
+      const result = await this.enrollmentService.getAllEnrollments(pageOptionsDto, enrollmentFilter);
       return new ResponseObject(true, 'All Enrollmentes', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

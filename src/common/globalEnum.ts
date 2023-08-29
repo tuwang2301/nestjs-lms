@@ -22,3 +22,8 @@ export enum Authority {
   Student = 'student',
   Teacher = 'teacher',
 }
+
+export enum Order {
+  ASC = "ASC",
+  DESC = "DESC",
+}

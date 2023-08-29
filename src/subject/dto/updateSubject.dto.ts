@@ -1,16 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString } from '@nestjs/class-validator';
 import { Optional } from '@nestjs/common';
 import { IsNumber } from 'class-validator';
 
 export class UpdateSubjectDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
   @Optional()
   name?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsNumber()
   @Optional()
-  credit: number;
+  credit?: number;
 }

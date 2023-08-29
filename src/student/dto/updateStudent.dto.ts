@@ -1,30 +1,30 @@
 import { Conduct, Gender, Rank } from '../../common/globalEnum';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsDateString, IsEmail, IsEnum } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsDate, IsDateString, IsEmail, IsEnum, IsOptional } from "class-validator";
 import { Optional } from '@nestjs/common';
 
 export class UpdateStudentDto {
-  @ApiProperty()
-  @Optional()
+  @ApiPropertyOptional()
+  @IsOptional()
   full_name?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsDateString()
-  @Optional()
+  @IsOptional()
   dob?: Date;
 
-  @ApiProperty({ name: 'gender', enum: Gender })
+  @ApiPropertyOptional({ name: 'gender', enum: Gender })
   @IsEnum(Gender)
-  @Optional()
+  @IsOptional()
   gender?: Gender;
 
-  @ApiProperty({ name: 'rank', enum: Rank })
+  @ApiPropertyOptional({ name: 'rank', enum: Rank })
   @IsEnum(Rank)
-  @Optional()
+  @IsOptional()
   rank?: Rank;
 
-  @ApiProperty({ name: 'conduct', enum: Conduct })
+  @ApiPropertyOptional({ name: 'conduct', enum: Conduct })
   @IsEnum(Conduct)
-  @Optional()
+  @IsOptional()
   conduct?: Conduct;
 }

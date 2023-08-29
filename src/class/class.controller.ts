@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   Post,
-  Put,
-} from '@nestjs/common';
+  Put, Query
+} from "@nestjs/common";
 import { ClassService } from './class.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { ResponseObject } from '../common/ResponseObject';
@@ -14,6 +14,8 @@ import { AddClassDTO } from '../Class/dto/addClass.dto';
 import { UpdateClassDTO } from '../Class/dto/updateClass.dto';
 import { Authorities } from "../auth/authorities.decorator";
 import { Authority } from "../common/globalEnum";
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { ClassFilterDto } from "./dto/class.filter.dto";
 
 @Controller('class')
 @ApiTags('Class')
@@ -23,9 +25,12 @@ export class ClassController {
 
   @Get()
   @ApiOperation({ summary: 'Get all Classes' })
-  async getAllClasses() {
+  async getAllClasses(
+    @Query() pageOptionsDto : PageOptionsDto,
+    @Query() classFilter : ClassFilterDto
+  ) {
     try {
-      const result = await this.classService.getAllClasses();
+      const result = await this.classService.getAllClasses(pageOptionsDto, classFilter);
       return new ResponseObject(true, 'All Classes', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

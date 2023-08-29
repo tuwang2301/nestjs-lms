@@ -5,9 +5,9 @@ import {
   Get,
   Param,
   Post,
-  Put,
-  Request,
-} from '@nestjs/common';
+  Put, Query,
+  Request
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SubjectService } from './subject.service';
 import { ResponseObject } from '../common/ResponseObject';
@@ -15,6 +15,7 @@ import { UpdateSubjectDto } from './dto/updateSubject.dto';
 import { AddSubjectDto } from './dto/addSubject.dto';
 import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
 @Controller('subject')
 @ApiTags('Subject')
 @ApiBearerAuth()
@@ -23,9 +24,12 @@ export class SubjectController {
 
   @Get()
   @ApiOperation({ summary: 'Get all subjects' })
-  async getAllSubjects() {
+  async getAllSubjects(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() subjectFilter: UpdateSubjectDto,
+  ) {
     try {
-      const result = await this.subjectService.getAllSubjects();
+      const result = await this.subjectService.getAllSubjects(pageOptionsDto, subjectFilter);
       return new ResponseObject(true, 'All Subjects', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

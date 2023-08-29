@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { TeacherService } from "./teacher.service";
 import { ResponseObject } from "../common/ResponseObject";
@@ -7,6 +7,8 @@ import { addTeacherDto } from "./dto/addTeacher.dto";
 import { AssignSubjectDto } from "./dto/assignSubject.dto";
 import { Authorities } from "../auth/authorities.decorator";
 import { Authority } from "../common/globalEnum";
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { UpdateSubjectDto } from "../subject/dto/updateSubject.dto";
 
 @Controller('teacher')
 @ApiTags('Teacher')
@@ -15,9 +17,12 @@ export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
   @Get()
   @ApiOperation({ summary: 'Get all teachers' })
-  async getAllTeachers() {
+  async getAllTeachers(
+    @Query() pageOptionsDto : PageOptionsDto,
+    @Query() teacherFilterDto : UpdateTeacherDto,
+  ) {
     try {
-      const result = await this.teacherService.getAllTeachers();
+      const result = await this.teacherService.getAllTeachers(pageOptionsDto, teacherFilterDto);
       return new ResponseObject(true, 'All teachers', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

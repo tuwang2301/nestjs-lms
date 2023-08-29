@@ -5,8 +5,8 @@ import {
   Get,
   Param,
   Post,
-  Put,
-} from '@nestjs/common';
+  Put, Query
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CourseService } from './course.service';
 import { ResponseObject } from '../common/ResponseObject';
@@ -15,6 +15,8 @@ import { UpdateCourseDto } from '../Course/dto/updateCourse.dto';
 import { AssignTeacherDTO } from './dto/assignTeacher.dto';
 import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
+import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { CourseFilterDto } from "./dto/courseFilter.dto";
 
 @Controller('course')
 @ApiTags('Course')
@@ -23,9 +25,12 @@ export class CourseController {
   constructor(private readonly CourseService: CourseService) {}
   @Get()
   @ApiOperation({ summary: 'Get all Courses' })
-  async getAllCourses() {
+  async getAllCourses(
+      @Query() pageOptionsDto: PageOptionsDto,
+      @Query() courseFilter: CourseFilterDto
+  ) {
     try {
-      const result = await this.CourseService.getAllCourses();
+      const result = await this.CourseService.getCourses(pageOptionsDto, courseFilter);
       return new ResponseObject(true, 'All Courses', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);

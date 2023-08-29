@@ -1,18 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsDateString, IsNumber, IsOptional } from "class-validator";
 
 export class UpdateEnrollmentDTO {
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
   student_id?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsNumber()
   @IsOptional()
   course_id?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsDateString()
   @IsOptional()
   enroll_date?: Date;
