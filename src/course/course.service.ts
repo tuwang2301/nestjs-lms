@@ -34,18 +34,26 @@ export class CourseService {
         const queryBuilder = this.courseRepository.createQueryBuilder("course");
 
         queryBuilder
+          .leftJoinAndSelect('course.teacher', 'teacher')
+          .leftJoinAndSelect('course.subject', 'subject')
           .orderBy("course.id", pageOptionsDto.order)
           .skip((pageOptionsDto.page - 1) * pageOptionsDto.take)
           .take(pageOptionsDto.take);
 
         if (courseFilter.name) {
-            queryBuilder.where("course.name like :name", { name: `%${courseFilter.name}%` });
+            queryBuilder.where("course.name like :name", { name: `%${courseFilter.name.toUpperCase()}%` });
         }
         if (courseFilter.start_at) {
-            queryBuilder.andWhere("course.start_at = :start_at", { start_at: courseFilter.start_at });
+            queryBuilder.andWhere("course.start_at >= :start_at", { start_at: courseFilter.start_at });
         }
         if (courseFilter.end_at) {
-            queryBuilder.andWhere("course.end_at = :end_at", { end_at: courseFilter.end_at });
+            queryBuilder.andWhere("course.end_at <= :end_at", { end_at: courseFilter.end_at });
+        }
+        if(courseFilter.teachers_id) {
+            queryBuilder.andWhere("course.teacher.id IN (:...ids)", {ids: courseFilter.teachers_id});
+        }
+        if(courseFilter.subjects_id) {
+            queryBuilder.andWhere("course.subject.id IN (:...ids)", {ids: courseFilter.subjects_id});
         }
 
         const itemCount = await queryBuilder.getCount();
@@ -150,6 +158,7 @@ export class CourseService {
             newCourse.class_room = _class;
             newCourse.start_at = CourseDTO.start_at;
             newCourse.end_at = CourseDTO.end_at;
+            newCourse.image = CourseDTO.image;
             return await this.courseRepository.save(newCourse);
         } catch (e) {
             throw e;
@@ -226,5 +235,9 @@ export class CourseService {
         } catch (e) {
             throw e;
         }
+    }
+
+    async getMostEnrolledCourse() {
+
     }
 }

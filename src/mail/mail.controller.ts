@@ -1,5 +1,4 @@
 import { Controller, Get, Param, Post, Query } from "@nestjs/common";
-import { SendgridService } from 'src/sendgrid/sendgrid.service';
 import { ApiPropertyOptional, ApiTags } from "@nestjs/swagger";
 import { Public } from "../common/custom.decorator";
 import { MailerService } from "@nestjs-modules/mailer";

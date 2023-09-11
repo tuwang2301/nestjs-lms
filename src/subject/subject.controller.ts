@@ -16,6 +16,7 @@ import { AddSubjectDto } from './dto/addSubject.dto';
 import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { Public } from "../common/custom.decorator";
 @Controller('subject')
 @ApiTags('Subject')
 @ApiBearerAuth()
@@ -24,6 +25,7 @@ export class SubjectController {
 
   @Get()
   @ApiOperation({ summary: 'Get all subjects' })
+  @Public()
   async getAllSubjects(
     @Query() pageOptionsDto: PageOptionsDto,
     @Query() subjectFilter: UpdateSubjectDto,
@@ -38,7 +40,7 @@ export class SubjectController {
 
   @Post('create')
   @ApiOperation({ summary: 'Create new subject' })
-  @Authorities(Authority.Admin)
+  // @Authorities(Authority.Admin)
   async createSubject(@Body() subjectDTO: AddSubjectDto) {
     try {
       const result = await this.subjectService.createSubject(subjectDTO);

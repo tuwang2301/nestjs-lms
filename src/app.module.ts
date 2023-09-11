@@ -21,7 +21,6 @@ import { TeacherModule } from "./teacher/teacher.module";
 import { AuthModule } from "./auth/auth.module";
 import { EmailVerification } from "./auth/emailVerification.entity";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { SendgridService } from "./sendgrid/sendgrid.service";
 import { MailController } from "./mail/mail.controller";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
@@ -46,7 +45,7 @@ import { join } from "path";
             username: "postgres",
             password: "123456",
             database: "school_test",
-            logging: ["error"],
+            logging: ["error", 'query'],
             entities: [
                 Users,
                 Teacher,
@@ -72,7 +71,7 @@ import { join } from "path";
         EnrollmentModule
     ],
     controllers: [AppController, MailController],
-    providers: [AppService, SendgridService]
+    providers: [AppService]
 })
 export class AppModule {
 }

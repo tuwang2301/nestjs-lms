@@ -28,7 +28,7 @@ export class SubjectService {
         .take(pageOptionsDto.take)
 
       if(subjectFilter.name){
-        queryBuilder.where('subject.name like :name', {name: `%${subjectFilter.name}%`})
+        queryBuilder.where('LOWER(subject.name) like LOWER(:name)', {name: `%${subjectFilter.name}%`})
       }
 
       if(subjectFilter.credit){

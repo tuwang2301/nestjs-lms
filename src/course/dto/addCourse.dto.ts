@@ -23,4 +23,8 @@ export class AddCourseDto {
   @ApiProperty()
   @IsDateString()
   end_at: Date;
+
+  @ApiProperty()
+  @IsString()
+  image: string;
 }

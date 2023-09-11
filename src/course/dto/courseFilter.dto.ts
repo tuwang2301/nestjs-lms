@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsOptional } from "class-validator";
+import { IsArray, IsDateString, IsNumber, IsOptional } from "class-validator";
 import { Column } from "typeorm";
 
 export class CourseFilterDto{
@@ -16,4 +16,12 @@ export class CourseFilterDto{
     @IsDateString()
     @IsOptional()
     end_at?: Date;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    teachers_id?: number[]
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    subjects_id?: number[]
 }

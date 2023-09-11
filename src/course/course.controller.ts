@@ -17,6 +17,7 @@ import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
 import { CourseFilterDto } from "./dto/courseFilter.dto";
+import { Public } from "src/common/custom.decorator";
 
 @Controller('course')
 @ApiTags('Course')
@@ -48,9 +49,11 @@ export class CourseController {
     }
   }
 
+
+
   @Post('create')
   @ApiOperation({ summary: 'Create new Course' })
-  @Authorities(Authority.Teacher, Authority.Admin)
+  // @Authorities(Authority.Teacher, Authority.Admin)
   async createCourse(@Body() CourseDTO: AddCourseDto) {
     try {
       const result = await this.CourseService.createCourse(CourseDTO);

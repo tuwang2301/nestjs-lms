@@ -34,7 +34,7 @@ export class TeacherService {
               .take(pageOptionsDto.take);
 
             if (teacherFilterDto.full_name) {
-                queryBuilder.where("teacher.full_name like :name", { name: `%${teacherFilterDto.full_name}%`  });
+                queryBuilder.where("LOWER(teacher.full_name) like LOWER(:name)", { name: `%${teacherFilterDto.full_name}%`  });
             }
 
             if (teacherFilterDto.dob) {

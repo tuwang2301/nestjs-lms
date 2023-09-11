@@ -140,4 +140,32 @@ export class EnrollmentService {
             throw e;
         }
     }
+
+    async getMostEnrolledCourse() {
+        try{
+            const query = this.enrollmentRepository.createQueryBuilder('enrollment');
+            query
+              .select('enrollment.courseId', 'course_id')
+              .addSelect('COUNT(*)', 'enroll')
+              .groupBy('enrollment.courseId')
+              .orderBy('enroll', 'DESC')
+              .limit(3)
+            const mostEnrollIds = await query.getRawMany().then(data => data.map(data => data.course_id));
+            const mostEnrolledCourses = [];
+
+            for (let i = 0; i < 3; i++) {
+                const course =
+                  await this.courseRepository.createQueryBuilder('course')
+                    .leftJoinAndSelect('course.teacher', 'teacher')
+                    .leftJoinAndSelect('course.subject', 'subject')
+                    .where('course.id = :id',{id: mostEnrollIds[i]})
+                    .getOne()
+                mostEnrolledCourses.push(course)
+            }
+
+            return mostEnrolledCourses;
+        }catch (e){
+            throw e;
+        }
+    }
 }

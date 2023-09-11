@@ -15,6 +15,7 @@ import { UpdateEnrollmentDTO } from '../Enrollment/dto/updateEnrollment.dto';
 import { Authorities } from '../auth/authorities.decorator';
 import { Authority } from '../common/globalEnum';
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
+import { Public } from "../common/custom.decorator";
 
 @Controller('enrollment')
 @ApiTags('Enrollment')
@@ -32,6 +33,18 @@ export class EnrollmentController {
     try {
       const result = await this.enrollmentService.getAllEnrollments(pageOptionsDto, enrollmentFilter);
       return new ResponseObject(true, 'All Enrollmentes', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Error', error.message);
+    }
+  }
+
+  @Get('most-enrolled')
+  @ApiOperation({summary: 'Get the most enrolled course'})
+  @Public()
+  async getMostEnrolledCourse(){
+    try {
+      const result = await this.enrollmentService.getMostEnrolledCourse();
+      return new ResponseObject(true, 'Most enrolled course', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);
     }

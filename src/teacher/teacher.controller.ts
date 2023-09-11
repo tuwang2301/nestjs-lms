@@ -9,6 +9,7 @@ import { Authorities } from "../auth/authorities.decorator";
 import { Authority } from "../common/globalEnum";
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
 import { UpdateSubjectDto } from "../subject/dto/updateSubject.dto";
+import { Public } from "../common/custom.decorator";
 
 @Controller('teacher')
 @ApiTags('Teacher')

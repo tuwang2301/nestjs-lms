@@ -34,14 +34,18 @@ export class AuthService {
     }
 
     async findByUsername(username: string) {
-        return await this.userRepository
+        console.time('time_start')
+
+        const result = await this.userRepository
           .createQueryBuilder("user")
           .leftJoinAndSelect("user.roles", "roles")
           .leftJoinAndSelect("user.teacher", "teacher")
           .leftJoinAndSelect("user.student", "student")
           .where("user.username = :username", { username })
           .getOne();
+        console.timeEnd('time_start');
 
+        return result;
     }
 
     async findByEmail(email: string) {
@@ -80,7 +84,8 @@ export class AuthService {
 
     async signIn(username: string, pass: string) {
         try {
-            let user = await this.findByUsername(username) ? await this.findByUsername(username): await this.findByEmail(username);
+            let user = await this.findByUsername(username) ?
+              await this.findByUsername(username): await this.findByEmail(username);
             if (!user) {
                 throw new Error("Not found user by username/email");
             }
@@ -96,11 +101,16 @@ export class AuthService {
             const payload = {
                 id: user.id,
                 username: user.username,
-                roles: user.roles
+                roles: user.roles.map(role => role.authority)
             };
             return {
                 user,
-                access_token: await this.jwtService.signAsync(payload)
+                access_token: await this.jwtService.signAsync(
+                  payload,
+                  {
+                      expiresIn: '3m',
+                  }
+                )
             };
         } catch (e) {
             throw e;
