@@ -5,6 +5,7 @@ import { Users } from './users.entity';
 import { Repository } from 'typeorm';
 import { Role } from '../role/role.entity';
 import { AssignRoleDto } from './dto/assignRole.dto';
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class UsersService {
@@ -13,9 +14,26 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly jwtService: JwtService
   ) {}
   async getListUser() {
     return await this.usersRepository.find();
+  }
+
+  async getUserByToken(authorization: string){
+    const token = authorization.replace('Bearer','').trim();
+    const decode = this.jwtService.decode(token);
+    return this.usersRepository.findOne({
+      relations:
+        {
+          student: true,
+          teacher: true,
+        },
+      where:
+        {
+          id: decode['id']
+        }
+    });
   }
 
   async createUser(data: UsersDTO) {
@@ -72,16 +90,7 @@ export class UsersService {
       if (result === null || result === undefined) {
         throw new Error('Not found this user');
       }
-      console.log(result.roles);
-      const x = await result.roles;
-      const studentRole = x.find((r) => r.authority === 'student');
-      if (studentRole) {
-        return result.student;
-      }
-      const teacherRole = x.find((r) => r.authority === 'teacher');
-      if (teacherRole) {
-        return result.teacher;
-      }
+      return result
     } catch (error) {
       throw error;
     }

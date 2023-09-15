@@ -14,7 +14,7 @@ export class SubjectService {
     @InjectRepository(Subject)
     private readonly subjectRepository: Repository<Subject>,
   ) {}
-  async getAllSubjects(
+  async getSubjectsPagination(
     pageOptionsDto: PageOptionsDto,
     subjectFilter: UpdateSubjectDto,
   ) {
@@ -79,6 +79,14 @@ export class SubjectService {
       }
       return await this.subjectRepository.delete(id);
     } catch (e) {
+      throw e;
+    }
+  }
+
+  async getAllSubjects() {
+    try{
+      return await this.subjectRepository.find();
+    }catch (e){
       throw e;
     }
   }

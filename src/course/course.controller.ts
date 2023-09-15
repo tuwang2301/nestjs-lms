@@ -26,7 +26,7 @@ export class CourseController {
   constructor(private readonly CourseService: CourseService) {}
   @Get()
   @ApiOperation({ summary: 'Get all Courses' })
-  async getAllCourses(
+  async getAllCoursesPagination(
       @Query() pageOptionsDto: PageOptionsDto,
       @Query() courseFilter: CourseFilterDto
   ) {
@@ -53,7 +53,7 @@ export class CourseController {
 
   @Post('create')
   @ApiOperation({ summary: 'Create new Course' })
-  // @Authorities(Authority.Teacher, Authority.Admin)
+  @Authorities(Authority.Admin)
   async createCourse(@Body() CourseDTO: AddCourseDto) {
     try {
       const result = await this.CourseService.createCourse(CourseDTO);
@@ -65,7 +65,7 @@ export class CourseController {
 
   @Put('update/:id')
   @ApiOperation({ summary: 'Update Course by id' })
-  @Authorities(Authority.Teacher, Authority.Admin)
+  @Authorities(Authority.Admin)
   async updateCourse(@Param('id') id: number, @Body() data: UpdateCourseDto) {
     try {
       const result = await this.CourseService.updateCourse(id, data);

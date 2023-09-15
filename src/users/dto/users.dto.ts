@@ -2,10 +2,10 @@ import { IsString } from '@nestjs/class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UsersDTO {
-  @ApiProperty()
+  @ApiProperty({default: 'hieutruong'})
   @IsString()
   username: string;
-  @ApiProperty()
+  @ApiProperty({default: 'Ilove@2003'})
   @IsString()
   password: string;
   // @ApiProperty()

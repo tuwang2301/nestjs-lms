@@ -35,8 +35,11 @@ export class Course extends BaseEntity{
   @Column()
   end_at: Date;
 
-  @Column({nullable: true, default: './image/math3.jpg'})
+  @Column()
   image: string;
+
+  @Column({nullable: true})
+  description: string;
 
   @ManyToOne(() => Class, (class_room) => class_room.courses)
   @JoinColumn()

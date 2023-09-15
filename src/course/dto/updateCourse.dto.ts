@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString } from '@nestjs/class-validator';
 import { IsDateString, IsNumber, IsOptional } from 'class-validator';
 
@@ -32,4 +32,14 @@ export class UpdateCourseDto {
   @IsNumber()
   @IsOptional()
   class_room_id?: number;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  image?: string;
 }

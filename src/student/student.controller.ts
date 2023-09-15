@@ -55,7 +55,7 @@ export class StudentController {
 
   @Put('update/:id')
   @ApiOperation({ summary: 'Update student by id' })
-  @Authorities(Authority.Admin)
+  @Authorities(Authority.Admin, Authority.Student)
   async updateStudent(
     @Param('id') id: number,
     @Body() studentDTO: UpdateStudentDto,

@@ -10,29 +10,16 @@ import { Users } from '../users/users.entity';
 import { Conduct, Gender, Rank } from '../common/globalEnum';
 import { Enrollment } from '../enrollment/enrollment.entity';
 import { BaseEntity } from '../common/BaseEntity';
+import { Profile } from "../common/ProfileEntity";
 
 @Entity()
-export class Student extends BaseEntity {
+export class Student extends Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => Users, (user) => user.student)
   @JoinColumn()
   user: Users;
-
-  @Column()
-  full_name: string;
-
-  @Column({
-    type: 'enum',
-    enum: Gender,
-  })
-  gender: Gender;
-
-  @Column({
-    type: 'date',
-  })
-  dob: Date;
 
   @Column({
     type: 'enum',
@@ -47,7 +34,6 @@ export class Student extends BaseEntity {
     nullable: true,
   })
   conduct: Conduct;
-
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
   enrollments: Enrollment[];

@@ -13,24 +13,16 @@ import { Conduct, Gender, Rank } from '../common/globalEnum';
 import { Course } from '../course/course.entity';
 import { BaseEntity } from '../common/BaseEntity';
 import { Subject } from '../subject/subject.entity';
+import { Profile } from "../common/ProfileEntity";
 
 @Entity()
-export class Teacher extends BaseEntity {
+export class Teacher extends Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => Users, (user) => user.student)
   @JoinColumn()
   user: Users;
-
-  @Column()
-  full_name: string;
-
-  @Column()
-  gender: Gender;
-
-  @Column()
-  dob: Date;
 
   @OneToMany(() => Course, (course) => course.teacher)
   courses: Course[];

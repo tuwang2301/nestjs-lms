@@ -1,22 +1,14 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put, Query,
-  Request
-} from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { SubjectService } from './subject.service';
-import { ResponseObject } from '../common/ResponseObject';
-import { UpdateSubjectDto } from './dto/updateSubject.dto';
-import { AddSubjectDto } from './dto/addSubject.dto';
-import { Authorities } from '../auth/authorities.decorator';
-import { Authority } from '../common/globalEnum';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { SubjectService } from "./subject.service";
+import { ResponseObject } from "../common/ResponseObject";
+import { UpdateSubjectDto } from "./dto/updateSubject.dto";
+import { AddSubjectDto } from "./dto/addSubject.dto";
+import { Authorities } from "../auth/authorities.decorator";
+import { Authority } from "../common/globalEnum";
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
 import { Public } from "../common/custom.decorator";
+
 @Controller('subject')
 @ApiTags('Subject')
 @ApiBearerAuth()
@@ -31,8 +23,20 @@ export class SubjectController {
     @Query() subjectFilter: UpdateSubjectDto,
   ) {
     try {
-      const result = await this.subjectService.getAllSubjects(pageOptionsDto, subjectFilter);
+      const result = await this.subjectService.getSubjectsPagination(pageOptionsDto, subjectFilter);
       return new ResponseObject(true, 'All Subjects', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Error', error.message);
+    }
+  }
+
+  @Get('all-subjects')
+  @ApiOperation({ summary: 'Get all subjects' })
+  @Authorities(Authority.Admin)
+  async getAllCourses() {
+    try {
+      const result = await this.subjectService.getAllSubjects();
+      return new ResponseObject(true, 'All Courses', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);
     }
@@ -40,7 +44,7 @@ export class SubjectController {
 
   @Post('create')
   @ApiOperation({ summary: 'Create new subject' })
-  // @Authorities(Authority.Admin)
+  @Authorities(Authority.Admin)
   async createSubject(@Body() subjectDTO: AddSubjectDto) {
     try {
       const result = await this.subjectService.createSubject(subjectDTO);

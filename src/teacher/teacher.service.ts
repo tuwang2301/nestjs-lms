@@ -20,7 +20,7 @@ export class TeacherService {
     ) {
     }
 
-    async getAllTeachers(
+    async getTeachersPagination(
       pageOptionsDto: PageOptionsDto,
       teacherFilterDto: UpdateTeacherDto
     ) {
@@ -163,6 +163,14 @@ export class TeacherService {
                 }
             });
         } catch (e) {
+            throw e;
+        }
+    }
+
+    async getAllTeachers() {
+        try{
+            return await this.teacherRepository.find();
+        }catch (e){
             throw e;
         }
     }

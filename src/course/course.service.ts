@@ -50,10 +50,10 @@ export class CourseService {
             queryBuilder.andWhere("course.end_at <= :end_at", { end_at: courseFilter.end_at });
         }
         if(courseFilter.teachers_id) {
-            queryBuilder.andWhere("course.teacher.id IN (:...ids)", {ids: courseFilter.teachers_id});
+            queryBuilder.andWhere("course.teacher.id IN (:...tids)", {tids: courseFilter.teachers_id});
         }
         if(courseFilter.subjects_id) {
-            queryBuilder.andWhere("course.subject.id IN (:...ids)", {ids: courseFilter.subjects_id});
+            queryBuilder.andWhere("course.subject.id IN (:...sids)", {sids: courseFilter.subjects_id});
         }
 
         const itemCount = await queryBuilder.getCount();
@@ -87,16 +87,23 @@ export class CourseService {
             if (found === null) {
                 throw new Error("Course not found");
             }
-            if (!data.name) {
-                found.name = data.name;
+            if (data.name) {
+                const course = await this.courseRepository.findOne({where:
+                      {name: data.name}
+                })
+                if (course.id !== found.id) {
+                    throw new Error("Course Name already exist");
+                } else {
+                    found.name = data.name;
+                }
             }
-            if (!data.start_at) {
+            if (data.start_at) {
                 found.start_at = data.start_at;
             }
-            if (!data.end_at) {
+            if (data.end_at) {
                 found.end_at = data.end_at;
             }
-            if (!data.class_room_id) {
+            if (data.class_room_id) {
                 const _class = await this.classRepository.findOneById(
                   data.class_room_id
                 );
@@ -106,7 +113,7 @@ export class CourseService {
                     found.class_room = _class;
                 }
             }
-            if (!data.subject_id) {
+            if (data.subject_id) {
                 const subject = await this.subjectRepository.findOneById(
                   data.subject_id
                 );
@@ -116,7 +123,7 @@ export class CourseService {
                     found.subject = subject;
                 }
             }
-            if (!data.teacher_id) {
+            if (data.teacher_id) {
                 const teacher = await this.teacherRepository.findOneById(
                   data.teacher_id
                 );
@@ -126,6 +133,8 @@ export class CourseService {
                     found.teacher = teacher;
                 }
             }
+            found.description = data.description??'';
+            found.image = data.image??'';
             return await this.courseRepository.update(id, found);
         } catch (e) {
             throw e;
@@ -146,19 +155,33 @@ export class CourseService {
             if (subject === null) {
                 throw new Error(`Subject with id ${CourseDTO.subject_id} not exist`);
             }
-            const _class = await this.classRepository.findOneById(
-              CourseDTO.class_room_id
-            );
-            if (_class === null) {
-                throw new Error(`Class with id ${CourseDTO.class_room_id} not exist`);
+            let teacher = null;
+            if(CourseDTO.teacher_id){
+                teacher = await this.teacherRepository.findOneById(
+                  CourseDTO.teacher_id
+                );
+                if (teacher === null) {
+                    throw new Error(`Teacher with id ${CourseDTO.teacher_id} not exist`);
+                }
+            }
+            let _class = null;
+            if(CourseDTO.class_room_id){
+                _class = await this.classRepository.findOneById(
+                  CourseDTO.class_room_id
+                );
+                if (_class === null) {
+                    throw new Error(`Class with id ${CourseDTO.class_room_id} not exist`);
+                }
             }
             const newCourse = new Course();
             newCourse.name = CourseDTO.name;
             newCourse.subject = subject;
             newCourse.class_room = _class;
+            newCourse.teacher = teacher;
             newCourse.start_at = CourseDTO.start_at;
             newCourse.end_at = CourseDTO.end_at;
             newCourse.image = CourseDTO.image;
+            newCourse.description = CourseDTO.description??'';
             return await this.courseRepository.save(newCourse);
         } catch (e) {
             throw e;
@@ -237,7 +260,4 @@ export class CourseService {
         }
     }
 
-    async getMostEnrolledCourse() {
-
-    }
 }

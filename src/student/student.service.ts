@@ -70,7 +70,7 @@ export class StudentService {
 
     async updateStudent(id: number, studentDTO: UpdateStudentDto) {
         try {
-            if (await this.studentRepository.findOneById(id)) {
+            if (!await this.studentRepository.findOneById(id)) {
                 throw new Error("Student not found");
             }
             return await this.studentRepository.update(id, studentDTO);

@@ -1,7 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString } from '@nestjs/class-validator';
 import { Optional } from '@nestjs/common';
-import { IsDateString, IsNumber } from "class-validator";
+import { IsDateString, IsNumber, IsOptional } from "class-validator";
 
 export class AddCourseDto {
   @ApiProperty()
@@ -12,8 +12,14 @@ export class AddCourseDto {
   @IsNumber()
   subject_id: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsNumber()
+  @IsOptional()
+  teacher_id: number;
+
+  @ApiPropertyOptional()
+  @IsNumber()
+  @IsOptional()
   class_room_id: number;
 
   @ApiProperty()
@@ -27,4 +33,9 @@ export class AddCourseDto {
   @ApiProperty()
   @IsString()
   image: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  description: string;
 }

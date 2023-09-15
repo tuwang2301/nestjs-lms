@@ -17,7 +17,7 @@ export class AuthoritiesGuard implements CanActivate {
     }
     const { user } = context.switchToHttp().getRequest();
     return requiredAuthorities.some((authority) => {
-      return user.roles?.some((role) => role.authority === authority);
+      return user.roles?.includes(authority);
     });
   }
 }

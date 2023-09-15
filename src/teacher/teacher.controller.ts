@@ -18,13 +18,25 @@ export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
   @Get()
   @ApiOperation({ summary: 'Get all teachers' })
-  async getAllTeachers(
+  async getTeachersPagination(
     @Query() pageOptionsDto : PageOptionsDto,
     @Query() teacherFilterDto : UpdateTeacherDto,
   ) {
     try {
-      const result = await this.teacherService.getAllTeachers(pageOptionsDto, teacherFilterDto);
+      const result = await this.teacherService.getTeachersPagination(pageOptionsDto, teacherFilterDto);
       return new ResponseObject(true, 'All teachers', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Error', error.message);
+    }
+  }
+
+  @Get('all-teachers')
+  @ApiOperation({ summary: 'Get all teachers' })
+  @Public()
+  async getAllTeachers() {
+    try {
+      const result = await this.teacherService.getAllTeachers();
+      return new ResponseObject(true, 'All Teachers', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);
     }

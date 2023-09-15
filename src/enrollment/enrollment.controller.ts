@@ -1,27 +1,25 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put, Query
-} from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { EnrollmentService } from './enrollment.service';
-import { ResponseObject } from '../common/ResponseObject';
-import { AddEnrollmentDTO } from '../Enrollment/dto/addEnrollment.dto';
-import { UpdateEnrollmentDTO } from '../Enrollment/dto/updateEnrollment.dto';
-import { Authorities } from '../auth/authorities.decorator';
-import { Authority } from '../common/globalEnum';
+import { Body, Controller, Delete, Get, Headers, Param, Post, Put, Query } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { EnrollmentService } from "./enrollment.service";
+import { ResponseObject } from "../common/ResponseObject";
+import { AddEnrollmentDTO } from "../Enrollment/dto/addEnrollment.dto";
+import { UpdateEnrollmentDTO } from "../Enrollment/dto/updateEnrollment.dto";
+import { Authorities } from "../auth/authorities.decorator";
+import { Authority } from "../common/globalEnum";
 import { PageOptionsDto } from "../pagination/pagesoption.dto";
 import { Public } from "../common/custom.decorator";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
 
 @Controller('enrollment')
 @ApiTags('Enrollment')
 @ApiBearerAuth()
 export class EnrollmentController {
-  constructor(private readonly enrollmentService: EnrollmentService) {}
+  constructor(
+    private readonly enrollmentService: EnrollmentService,
+    private readonly jwtService: JwtService,
+    private readonly usersService : UsersService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all Enrollments' })
@@ -50,13 +48,37 @@ export class EnrollmentController {
     }
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get enrollment info' })
-  @Authorities(Authority.Admin)
-  async getEnrollmentInfo(@Param('id') id: number) {
+  @Get('courses')
+  @ApiOperation({ summary: 'Get courses of student' })
+  async getCoursesOfStudent(@Headers() headers) {
     try {
-      const result = await this.enrollmentService.getEnrollmentInfo(id);
-      return new ResponseObject(true, 'All Enrollmentes', result);
+      const user = await this.usersService.getUserByToken(headers.authorization);
+      const result = await this.enrollmentService.getCoursesOfStudent(user.student.id);
+      return new ResponseObject(true, 'All courses of student', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Error', error.message);
+    }
+  }
+
+  @Get('students/:id')
+  @ApiOperation({ summary: 'Get students of course' })
+  @Authorities(Authority.Teacher, Authority.Admin)
+  async getStudentsOfCourse(@Param('id') courseId:number) {
+    try {
+      let result = await this.enrollmentService.getStudentsOfCourse(courseId);
+      return new ResponseObject(true, 'All students of course', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Error', error.message);
+    }
+  }
+
+  @Get(':studentId/:courseId')
+  @ApiOperation({ summary: 'Check enrollment' })
+  async checkEnrollment(@Param('studentId') studentId:number,@Param('courseId') courseId:number,) {
+    try {
+      let data = await this.enrollmentService.checkEnrollment(studentId,courseId);
+      const result = data ? true : false;
+      return new ResponseObject(true, 'Enrollment status', result);
     } catch (error) {
       return new ResponseObject(false, 'Error', error.message);
     }
@@ -69,6 +91,39 @@ export class EnrollmentController {
     try {
       const result =
         await this.enrollmentService.createEnrollment(EnrollmentDTO);
+      return new ResponseObject(true, 'Create successfully', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Create fail', error.message);
+    }
+  }
+
+  @Post('enroll/:id')
+  @ApiOperation({ summary: 'Enroll to new Course' })
+  @Authorities(Authority.Admin, Authority.Student)
+  async EnrollCourse(@Param('id') courseId:number, @Headers() headers) {
+    try {
+      const user = await this.usersService.getUserByToken(headers.authorization);
+      const data = {
+        student_id: user.student.id,
+        course_id: courseId,
+        enroll_date: new Date()
+      }
+      const result =
+        await this.enrollmentService.createEnrollment(data);
+      return new ResponseObject(true, 'Create successfully', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Create fail', error.message);
+    }
+  }
+
+  @Delete('unenroll/:id')
+  @ApiOperation({ summary: 'Create new Enrollment' })
+  @Authorities(Authority.Admin, Authority.Student)
+  async UnenrollCourse(@Param('id') courseId:number, @Headers() headers) {
+    try {
+      const user = await this.usersService.getUserByToken(headers.authorization);
+      const student_id = user.student.id;
+      const result = await this.enrollmentService.unenrollCourse(student_id, courseId);
       return new ResponseObject(true, 'Create successfully', result);
     } catch (error) {
       return new ResponseObject(false, 'Create fail', error.message);
@@ -101,4 +156,6 @@ export class EnrollmentController {
       return new ResponseObject(false, 'Delete fail', error.message);
     }
   }
+
+
 }
