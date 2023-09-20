@@ -16,29 +16,30 @@ import { CourseFilterDto } from "./dto/courseFilter.dto";
 @Injectable()
 export class CourseService {
     constructor(
-      @InjectRepository(Course)
-      private readonly courseRepository: Repository<Course>,
-      @InjectRepository(Subject)
-      private readonly subjectRepository: Repository<Subject>,
-      @InjectRepository(Teacher)
-      private readonly teacherRepository: Repository<Teacher>,
-      @InjectRepository(Class)
-      private readonly classRepository: Repository<Class>
+        @InjectRepository(Course)
+        private readonly courseRepository: Repository<Course>,
+        @InjectRepository(Subject)
+        private readonly subjectRepository: Repository<Subject>,
+        @InjectRepository(Teacher)
+        private readonly teacherRepository: Repository<Teacher>,
+        @InjectRepository(Class)
+        private readonly classRepository: Repository<Class>
     ) {
     }
 
     public async getCourses(
-      pageOptionsDto: PageOptionsDto,
-      courseFilter: CourseFilterDto
+        pageOptionsDto: PageOptionsDto,
+        courseFilter: CourseFilterDto
     ) {
         const queryBuilder = this.courseRepository.createQueryBuilder("course");
 
         queryBuilder
-          .leftJoinAndSelect('course.teacher', 'teacher')
-          .leftJoinAndSelect('course.subject', 'subject')
-          .orderBy("course.id", pageOptionsDto.order)
-          .skip((pageOptionsDto.page - 1) * pageOptionsDto.take)
-          .take(pageOptionsDto.take);
+            .leftJoinAndSelect('course.teacher', 'teacher')
+            .leftJoinAndSelect('course.subject', 'subject')
+            .leftJoinAndSelect('course.timetables', 'timetable')
+            .orderBy("course.id", pageOptionsDto.order)
+            .skip((pageOptionsDto.page - 1) * pageOptionsDto.take)
+            .take(pageOptionsDto.take);
 
         if (courseFilter.name) {
             queryBuilder.where("course.name like :name", { name: `%${courseFilter.name.toUpperCase()}%` });
@@ -49,11 +50,11 @@ export class CourseService {
         if (courseFilter.end_at) {
             queryBuilder.andWhere("course.end_at <= :end_at", { end_at: courseFilter.end_at });
         }
-        if(courseFilter.teachers_id) {
-            queryBuilder.andWhere("course.teacher.id IN (:...tids)", {tids: courseFilter.teachers_id});
+        if (courseFilter.teachers_id) {
+            queryBuilder.andWhere("course.teacher.id IN (:...tids)", { tids: courseFilter.teachers_id });
         }
-        if(courseFilter.subjects_id) {
-            queryBuilder.andWhere("course.subject.id IN (:...sids)", {sids: courseFilter.subjects_id});
+        if (courseFilter.subjects_id) {
+            queryBuilder.andWhere("course.subject.id IN (:...sids)", { sids: courseFilter.subjects_id });
         }
 
         const itemCount = await queryBuilder.getCount();
@@ -88,8 +89,9 @@ export class CourseService {
                 throw new Error("Course not found");
             }
             if (data.name) {
-                const course = await this.courseRepository.findOne({where:
-                      {name: data.name}
+                const course = await this.courseRepository.findOne({
+                    where:
+                        { name: data.name }
                 })
                 if (course.id !== found.id) {
                     throw new Error("Course Name already exist");
@@ -105,7 +107,7 @@ export class CourseService {
             }
             if (data.class_room_id) {
                 const _class = await this.classRepository.findOneById(
-                  data.class_room_id
+                    data.class_room_id
                 );
                 if (_class === null) {
                     throw new Error("Class not found");
@@ -115,7 +117,7 @@ export class CourseService {
             }
             if (data.subject_id) {
                 const subject = await this.subjectRepository.findOneById(
-                  data.subject_id
+                    data.subject_id
                 );
                 if (subject === null) {
                     throw new Error("Subject not found");
@@ -125,7 +127,7 @@ export class CourseService {
             }
             if (data.teacher_id) {
                 const teacher = await this.teacherRepository.findOneById(
-                  data.teacher_id
+                    data.teacher_id
                 );
                 if (teacher === null) {
                     throw new Error("Teacher not found");
@@ -133,8 +135,8 @@ export class CourseService {
                     found.teacher = teacher;
                 }
             }
-            found.description = data.description??'';
-            found.image = data.image??'';
+            found.description = data.description ?? '';
+            found.image = data.image ?? '';
             return await this.courseRepository.update(id, found);
         } catch (e) {
             throw e;
@@ -144,30 +146,30 @@ export class CourseService {
     async createCourse(CourseDTO: AddCourseDto) {
         try {
             if (
-              (await this.courseRepository.findOneBy({ name: CourseDTO.name })) !==
-              null
+                (await this.courseRepository.findOneBy({ name: CourseDTO.name })) !==
+                null
             ) {
                 throw new Error(`Course with name ${CourseDTO.name} already exist`);
             }
             const subject = await this.subjectRepository.findOneById(
-              CourseDTO.subject_id
+                CourseDTO.subject_id
             );
             if (subject === null) {
                 throw new Error(`Subject with id ${CourseDTO.subject_id} not exist`);
             }
             let teacher = null;
-            if(CourseDTO.teacher_id){
+            if (CourseDTO.teacher_id) {
                 teacher = await this.teacherRepository.findOneById(
-                  CourseDTO.teacher_id
+                    CourseDTO.teacher_id
                 );
                 if (teacher === null) {
                     throw new Error(`Teacher with id ${CourseDTO.teacher_id} not exist`);
                 }
             }
             let _class = null;
-            if(CourseDTO.class_room_id){
+            if (CourseDTO.class_room_id) {
                 _class = await this.classRepository.findOneById(
-                  CourseDTO.class_room_id
+                    CourseDTO.class_room_id
                 );
                 if (_class === null) {
                     throw new Error(`Class with id ${CourseDTO.class_room_id} not exist`);
@@ -181,7 +183,7 @@ export class CourseService {
             newCourse.start_at = CourseDTO.start_at;
             newCourse.end_at = CourseDTO.end_at;
             newCourse.image = CourseDTO.image;
-            newCourse.description = CourseDTO.description??'';
+            newCourse.description = CourseDTO.description ?? '';
             return await this.courseRepository.save(newCourse);
         } catch (e) {
             throw e;
@@ -213,12 +215,12 @@ export class CourseService {
                 throw new Error("Teacher not found");
             }
             if (
-              !teacher.subjects.find((subject) => {
-                  return subject.id === course.subject.id;
-              })
+                !teacher.subjects.find((subject) => {
+                    return subject.id === course.subject.id;
+                })
             ) {
                 throw new Error(
-                  `This teacher do not teach subject ${course.subject.name}`
+                    `This teacher do not teach subject ${course.subject.name}`
                 );
             }
             course.teacher = teacher;

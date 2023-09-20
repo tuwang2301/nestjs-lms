@@ -2,6 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -12,9 +14,10 @@ import { Teacher } from '../teacher/teacher.entity';
 import { Class } from '../class/class.entity';
 import { Enrollment } from '../enrollment/enrollment.entity';
 import { BaseEntity } from "../common/BaseEntity";
+import { Timetable } from 'src/timetable/timetable.entity';
 
 @Entity()
-export class Course extends BaseEntity{
+export class Course extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -38,7 +41,7 @@ export class Course extends BaseEntity{
   @Column()
   image: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   description: string;
 
   @ManyToOne(() => Class, (class_room) => class_room.courses)
@@ -47,4 +50,8 @@ export class Course extends BaseEntity{
 
   @OneToMany(() => Enrollment, (enrollment) => enrollment.student)
   enrollments: Enrollment[];
+
+  @ManyToMany(() => Timetable, (timetable) => timetable.courses)
+  @JoinTable()
+  timetables: Timetable[]
 }

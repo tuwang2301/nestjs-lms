@@ -18,6 +18,7 @@ export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
   @Get()
   @ApiOperation({ summary: 'Get all teachers' })
+  @Public()
   async getTeachersPagination(
     @Query() pageOptionsDto : PageOptionsDto,
     @Query() teacherFilterDto : UpdateTeacherDto,

@@ -26,6 +26,7 @@ export class CourseController {
   constructor(private readonly CourseService: CourseService) {}
   @Get()
   @ApiOperation({ summary: 'Get all Courses' })
+  @Public()
   async getAllCoursesPagination(
       @Query() pageOptionsDto: PageOptionsDto,
       @Query() courseFilter: CourseFilterDto

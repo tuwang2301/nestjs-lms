@@ -25,6 +25,8 @@ import { MailController } from "./mail/mail.controller";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
 import { join } from "path";
+import { TimetableModule } from "./timetable/timetable.module";
+import { Timetable } from "./timetable/timetable.entity";
 
 @Module({
     imports: [
@@ -55,20 +57,22 @@ import { join } from "path";
                 Course,
                 Class,
                 Enrollment,
-                EmailVerification
+                EmailVerification,
+                Timetable
             ],
             synchronize: true,
             autoLoadEntities: true
         }),
         AuthModule,
-        UsersModule,
-        RoleModule,
+        CourseModule,
+        TimetableModule,
+        EnrollmentModule,
         StudentModule,
         TeacherModule,
         SubjectModule,
         ClassModule,
-        CourseModule,
-        EnrollmentModule
+        UsersModule,
+        RoleModule,
     ],
     controllers: [AppController, MailController],
     providers: [AppService]
