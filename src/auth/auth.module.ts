@@ -14,6 +14,8 @@ import { Student } from '../student/student.entity';
 import { Teacher } from '../teacher/teacher.entity';
 import { AuthoritiesGuard } from './authorities.guard';
 import { EmailVerification } from './emailVerification.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
@@ -23,8 +25,10 @@ import { EmailVerification } from './emailVerification.entity';
       Student,
       Teacher,
       EmailVerification,
+      Notification
     ]),
     UsersModule,
+    NotificationModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -44,4 +48,4 @@ import { EmailVerification } from './emailVerification.entity';
     AuthService,
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

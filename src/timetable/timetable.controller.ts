@@ -10,8 +10,9 @@ import { updateTimetableDTO } from "./dto/updateTimetable.dto";
 import { addTimetableDTO } from "./dto/addTimetable.dto";
 import { timetableFilter } from "./dto/timetableFilter.dto";
 import { scheduleCourseDTO } from "./dto/scheduleCourse.dto";
+import { unscheduleCourseDTO } from "./dto/unscheduleCourse.dto";
 
-@Controller('Timetable')
+@Controller('timetable')
 @ApiTags('Timetable')
 @ApiBearerAuth()
 export class TimetableController {
@@ -31,7 +32,7 @@ export class TimetableController {
     }
   }
 
-  @Get('all-Timetables')
+  @Get('all-timetable')
   @ApiOperation({ summary: 'Get all Timetables' })
   @Public()
   async getAllTimetables() {
@@ -72,9 +73,8 @@ export class TimetableController {
 
   @Post('schedule-course')
   @ApiOperation({ summary: 'Schedule course' })
-  // @Authorities(Authority.Admin)
-  @Public()
-  async scheduleCourse(@Query() scheduleCourseDTO: scheduleCourseDTO) {
+  @Authorities(Authority.Admin)
+  async scheduleCourse(@Body() scheduleCourseDTO: scheduleCourseDTO) {
     try {
       const result = await this.timetableService.scheduleCourse(scheduleCourseDTO);
       return new ResponseObject(true, 'Schedule successfully', result);
@@ -102,6 +102,18 @@ export class TimetableController {
   async deleteTimetable(@Param('id') id: number) {
     try {
       const result = await this.timetableService.deleteTimetable(id);
+      return new ResponseObject(true, 'Delete successfully', result);
+    } catch (error) {
+      return new ResponseObject(false, 'Delete fail', error.message);
+    }
+  }
+  @Delete('delete-schedule')
+  @ApiOperation({ summary: 'Delete schedule by id' })
+  // @Authorities(Authority.Admin)
+  @Public()
+  async deleteSchedule(@Query() unscheduleCourseDTO: unscheduleCourseDTO) {
+    try {
+      const result = await this.timetableService.deleteSchedule(unscheduleCourseDTO.course_id, unscheduleCourseDTO.timetable_id);
       return new ResponseObject(true, 'Delete successfully', result);
     } catch (error) {
       return new ResponseObject(false, 'Delete fail', error.message);

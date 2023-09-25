@@ -13,28 +13,28 @@ import { PageDto } from "../pagination/page.dto";
 @Injectable()
 export class TeacherService {
     constructor(
-      @InjectRepository(Teacher)
-      private readonly teacherRepository: Repository<Teacher>,
-      @InjectRepository(Subject)
-      private readonly subjectRepository: Repository<Subject>
+        @InjectRepository(Teacher)
+        private readonly teacherRepository: Repository<Teacher>,
+        @InjectRepository(Subject)
+        private readonly subjectRepository: Repository<Subject>
     ) {
     }
 
     async getTeachersPagination(
-      pageOptionsDto: PageOptionsDto,
-      teacherFilterDto: UpdateTeacherDto
+        pageOptionsDto: PageOptionsDto,
+        teacherFilterDto: UpdateTeacherDto
     ) {
         try {
             const queryBuilder = this.teacherRepository.createQueryBuilder("teacher");
             const skip = (pageOptionsDto.page - 1) * pageOptionsDto.take;
 
             queryBuilder
-              .orderBy("teacher.id", pageOptionsDto.order)
-              .skip(skip)
-              .take(pageOptionsDto.take);
+                .orderBy("teacher.id", pageOptionsDto.order)
+                .skip(skip)
+                .take(pageOptionsDto.take);
 
             if (teacherFilterDto.full_name) {
-                queryBuilder.where("LOWER(teacher.full_name) like LOWER(:name)", { name: `%${teacherFilterDto.full_name}%`  });
+                queryBuilder.where("LOWER(teacher.full_name) like LOWER(:name)", { name: `%${teacherFilterDto.full_name}%` });
             }
 
             if (teacherFilterDto.dob) {
@@ -101,7 +101,7 @@ export class TeacherService {
                 throw new Error("Teacher not found");
             }
             const subject = await this.subjectRepository.findOneById(
-              assignDTO.subject_id
+                assignDTO.subject_id
             );
             if (subject === null) {
                 throw new Error("Subject not found");
@@ -145,32 +145,31 @@ export class TeacherService {
 
     async getAllCoursesOfTeacher(id: number) {
         try {
-            const teacher = await this.teacherRepository.findOneById(id);
-            if (!teacher) {
-                throw new Error("Teacher not found");
-            }
-            return await this.teacherRepository.find({
-                select: {
-                    courses: {
-                        name: true
-                    }
-                },
+            const teacher = await this.teacherRepository.findOne({
                 relations: {
-                    courses: true
+                    courses: {
+                        timetables: true,
+                        subject: true,
+                        teacher: true
+                    }
                 },
                 where: {
                     id: id
                 }
             });
+            if (!teacher) {
+                throw new Error('Teacher not found');
+            }
+            return teacher.courses;
         } catch (e) {
             throw e;
         }
     }
 
     async getAllTeachers() {
-        try{
+        try {
             return await this.teacherRepository.find();
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }

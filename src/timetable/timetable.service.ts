@@ -15,6 +15,7 @@ import { scheduleCourseDTO } from "./dto/scheduleCourse.dto";
 @Injectable()
 export class TimetableService {
 
+
     constructor(
         @InjectRepository(Timetable)
         private readonly timetableRepository: Repository<Timetable>,
@@ -50,12 +51,33 @@ export class TimetableService {
                 }
             });
             const timetable = await this.getTimetable({ timeframe: scheduleCourseDTO.timeframe, weekday: scheduleCourseDTO.weekday });
+            if (course.timetables.find(time => time.id === timetable.id)) {
+                throw new Error('This courses already shedule at this time');
+            }
             if (!course.timetables) {
                 course.timetables = [];
                 course.timetables.push(timetable);
             } else {
                 course.timetables.push(timetable);
             }
+            return await this.courseRepository.save(course);
+        } catch (e) {
+            throw e;
+        }
+    }
+    async deleteSchedule(course_id: number, timetable_id: number) {
+        try {
+            const course = await this.courseRepository.findOne({
+                relations: {
+                    timetables: true,
+                },
+                where: {
+                    id: course_id,
+                }
+            });
+            course.timetables = course.timetables.filter(time => { return time.id != timetable_id })
+            console.log(course.timetables.filter(time => { return time.id !== timetable_id }));
+
             return await this.courseRepository.save(course);
         } catch (e) {
             throw e;
@@ -127,7 +149,11 @@ export class TimetableService {
 
     async getAllTimetables() {
         try {
-            return await this.timetableRepository.find();
+            return await this.timetableRepository.find({
+                relations: {
+                    courses: true
+                }
+            });
         } catch (e) {
             throw e;
         }

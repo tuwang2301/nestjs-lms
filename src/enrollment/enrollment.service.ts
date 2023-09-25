@@ -13,27 +13,27 @@ import { PageDto } from "../pagination/page.dto";
 @Injectable()
 export class EnrollmentService {
     constructor(
-      @InjectRepository(Enrollment)
-      private readonly enrollmentRepository: Repository<Enrollment>,
-      @InjectRepository(Student)
-      private readonly studentRepository: Repository<Student>,
-      @InjectRepository(Course)
-      private readonly courseRepository: Repository<Course>
+        @InjectRepository(Enrollment)
+        private readonly enrollmentRepository: Repository<Enrollment>,
+        @InjectRepository(Student)
+        private readonly studentRepository: Repository<Student>,
+        @InjectRepository(Course)
+        private readonly courseRepository: Repository<Course>
     ) {
     }
 
     async getAllEnrollments(
-      pageOptionsDto: PageOptionsDto,
-      enrollmentFilter: UpdateEnrollmentDTO
+        pageOptionsDto: PageOptionsDto,
+        enrollmentFilter: UpdateEnrollmentDTO
     ) {
         try {
             const queryBuilder = this.enrollmentRepository.createQueryBuilder("enrollment");
             const skip = (pageOptionsDto.page - 1) * pageOptionsDto.take;
 
             queryBuilder
-              .orderBy("enrollment.id", pageOptionsDto.order)
-              .skip(skip)
-              .take(pageOptionsDto.take);
+                .orderBy("enrollment.id", pageOptionsDto.order)
+                .skip(skip)
+                .take(pageOptionsDto.take);
 
             if (enrollmentFilter.course_id) {
                 queryBuilder.where("enrollment.courseId = :courseId", { courseId: enrollmentFilter.course_id });
@@ -57,22 +57,22 @@ export class EnrollmentService {
         }
     }
 
-    async checkEnrollment(studentId: number, courseId: number){
-        try{
+    async checkEnrollment(studentId: number, courseId: number) {
+        try {
             const enroll = await this.enrollmentRepository.findOne(
-              {
-                  where: {
-                      student: {
-                          id: studentId
-                      },
-                      course: {
-                          id: courseId
-                      }
-                  }
-              }
+                {
+                    where: {
+                        student: {
+                            id: studentId
+                        },
+                        course: {
+                            id: courseId
+                        }
+                    }
+                }
             )
             return enroll
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }
@@ -81,24 +81,50 @@ export class EnrollmentService {
         try {
             const enroll = new Enrollment();
             enroll.enroll_date = new Date();
-            const check = await this.checkEnrollment(EnrollmentDTO.student_id, EnrollmentDTO.course_id);
-            if(check){
-                throw new Error('Student already enrolled this course');
-            }
             const student = await this.studentRepository.findOneById(
-              EnrollmentDTO.student_id
+                EnrollmentDTO.student_id
             );
             if (student === null) {
                 throw new Error("Student not found");
             }
             enroll.student = student;
-            const course = await this.courseRepository.findOneById(
-              EnrollmentDTO.course_id
+            const course = await this.courseRepository.findOne({
+                relations: {
+                    timetables: true
+                },
+                where: {
+                    id: EnrollmentDTO.course_id
+                }
+            }
             );
             if (course === null) {
                 throw new Error("Course not found");
             }
             enroll.course = course;
+            const check = await this.checkEnrollment(EnrollmentDTO.student_id, EnrollmentDTO.course_id);
+            if (check) {
+                throw new Error('Student already enrolled this course');
+            }
+            const enrolls = await this.getCoursesOfStudent(EnrollmentDTO.student_id);
+            const enrolledCourse = enrolls.map(enroll => enroll.course)
+            const enrolledTime = enrolledCourse.map(course => course.timetables)
+            console.log(enrolledTime);
+            const courseTime = course.timetables;
+            console.log(courseTime);
+            let checkTime = false;
+            enrolledTime.forEach(eta => {
+                eta.forEach(et => courseTime.forEach(ct => {
+                    if (ct.id === et.id) {
+                        checkTime = true;
+                        return;
+                    }
+                }))
+            })
+            console.log(checkTime);
+            if (checkTime) {
+                throw new Error('Student already has class at this time! Check your timetable');
+            }
+
             return await this.enrollmentRepository.save(enroll);
         } catch (e) {
             throw e;
@@ -113,7 +139,7 @@ export class EnrollmentService {
             }
             if (!data.student_id) {
                 const student = await this.studentRepository.findOneById(
-                  data.student_id
+                    data.student_id
                 );
                 if (student === null) {
                     throw new Error("Student not found");
@@ -166,53 +192,54 @@ export class EnrollmentService {
     }
 
     async getMostEnrolledCourse() {
-        try{
+        try {
             const query = this.enrollmentRepository.createQueryBuilder('enrollment');
             query
-              .select('enrollment.courseId', 'course_id')
-              .addSelect('COUNT(*)', 'enroll')
-              .groupBy('enrollment.courseId')
-              .orderBy('enroll', 'DESC')
-              .limit(3)
+                .select('enrollment.courseId', 'course_id')
+                .addSelect('COUNT(*)', 'enroll')
+                .groupBy('enrollment.courseId')
+                .orderBy('enroll', 'DESC')
+                .limit(3)
             const mostEnrollIds = await query.getRawMany().then(data => data.map(data => data.course_id));
             const mostEnrolledCourses = [];
 
             for (let i = 0; i < 3; i++) {
                 const course =
-                  await this.courseRepository.createQueryBuilder('course')
-                    .leftJoinAndSelect('course.teacher', 'teacher')
-                    .leftJoinAndSelect('course.subject', 'subject')
-                    .where('course.id = :id',{id: mostEnrollIds[i]})
-                    .getOne()
+                    await this.courseRepository.createQueryBuilder('course')
+                        .leftJoinAndSelect('course.teacher', 'teacher')
+                        .leftJoinAndSelect('course.subject', 'subject')
+                        .where('course.id = :id', { id: mostEnrollIds[i] })
+                        .getOne()
                 mostEnrolledCourses.push(course)
             }
 
             return mostEnrolledCourses;
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }
 
     async unenrollCourse(student_id: any, courseId: number) {
-        try{
+        try {
             const enroll = await this.checkEnrollment(student_id, courseId);
-            if(enroll){
+            if (enroll) {
                 return this.enrollmentRepository.delete(enroll.id);
-            }else{
+            } else {
                 throw new Error('This student has not enrolled this course.')
             }
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }
 
     async getCoursesOfStudent(studentId: number) {
-        try{
+        try {
             return this.enrollmentRepository.find({
                 relations: {
                     course: {
                         subject: true,
-                        teacher: true
+                        teacher: true,
+                        timetables: true,
                     },
 
                 },
@@ -225,13 +252,13 @@ export class EnrollmentService {
                     enroll_date: 'DESC'
                 }
             })
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }
 
     async getStudentsOfCourse(courseId: number) {
-        try{
+        try {
             return this.enrollmentRepository.find({
                 relations: {
                     student: true,
@@ -242,7 +269,7 @@ export class EnrollmentService {
                     }
                 }
             })
-        }catch (e){
+        } catch (e) {
             throw e;
         }
     }

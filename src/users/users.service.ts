@@ -15,24 +15,24 @@ export class UsersService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly jwtService: JwtService
-  ) {}
+  ) { }
   async getListUser() {
     return await this.usersRepository.find();
   }
 
-  async getUserByToken(authorization: string){
-    const token = authorization.replace('Bearer','').trim();
+  async getUserByToken(authorization: string) {
+    const token = authorization.replace('Bearer', '').trim();
     const decode = this.jwtService.decode(token);
     return this.usersRepository.findOne({
       relations:
-        {
-          student: true,
-          teacher: true,
-        },
+      {
+        student: true,
+        teacher: true,
+      },
       where:
-        {
-          id: decode['id']
-        }
+      {
+        id: decode['id']
+      }
     });
   }
 
@@ -81,7 +81,11 @@ export class UsersService {
         relations: {
           roles: true,
           student: true,
-          teacher: true,
+          teacher: {
+            courses: {
+              timetables: true
+            }
+          },
         },
         where: {
           id: id,

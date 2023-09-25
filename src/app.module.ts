@@ -27,6 +27,8 @@ import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from "path";
 import { TimetableModule } from "./timetable/timetable.module";
 import { Timetable } from "./timetable/timetable.entity";
+import { NotificationModule } from './notification/notification.module';
+import { Notification } from "./notification/entities/notification.entity";
 
 @Module({
     imports: [
@@ -58,7 +60,8 @@ import { Timetable } from "./timetable/timetable.entity";
                 Class,
                 Enrollment,
                 EmailVerification,
-                Timetable
+                Timetable,
+                Notification
             ],
             synchronize: true,
             autoLoadEntities: true
@@ -73,6 +76,7 @@ import { Timetable } from "./timetable/timetable.entity";
         ClassModule,
         UsersModule,
         RoleModule,
+        NotificationModule,
     ],
     controllers: [AppController, MailController],
     providers: [AppService]

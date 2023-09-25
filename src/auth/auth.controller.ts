@@ -14,12 +14,17 @@ import { SignupDto } from "./dto/signup.dto";
 import { UsersService } from "../users/users.service";
 import { VerifyEmailDto } from "./dto/verifyEmail.dto";
 import * as dayjs from "dayjs";
+import { NotificationService } from "src/notification/notification.service";
 
 @Controller("auth")
 @ApiTags("Authentication")
 @ApiBearerAuth()
 export class AuthController {
-    constructor(private authService: AuthService, private userService: UsersService) {
+    constructor(
+        private authService: AuthService,
+        private userService: UsersService,
+        private notificationService: NotificationService
+    ) {
     }
 
     @Post("login")
@@ -28,9 +33,10 @@ export class AuthController {
     async signIn(@Body() signInDto: UsersDTO) {
         try {
             const result = await this.authService.signIn(
-              signInDto.username,
-              signInDto.password
+                signInDto.username,
+                signInDto.password,
             );
+            await this.notificationService.acceptPushNotification(result.user.id, signInDto.client_token)
             return new ResponseObject(true, "Sign in successfully", result);
         } catch (e) {
             return new ResponseObject(false, "Sign in fail", e.message);
@@ -85,13 +91,13 @@ export class AuthController {
     public async sendEmailVerification(@Param("email") email: string) {
         try {
             let start = dayjs();
-            if(!(await this.authService.findByEmail(email))){
+            if (!(await this.authService.findByEmail(email))) {
                 return new ResponseObject(false, "User not found!", false);
             }
             await this.authService.createEmailToken(email);
             var isEmailSent = await this.authService.sendEmailVerification(email);
             if (isEmailSent) {
-                console.log("Total time taken : " + dayjs().diff(start,'milliseconds',true) + " milliseconds");
+                console.log("Total time taken : " + dayjs().diff(start, 'milliseconds', true) + " milliseconds");
                 return new ResponseObject(true, "Email token resent!", isEmailSent);
             } else {
                 return new ResponseObject(false, "Email token not resent!", isEmailSent);
