@@ -15,9 +15,11 @@ import config from "./config";
 import * as dayjs from "dayjs";
 import { MailerService } from "@nestjs-modules/mailer";
 import { Notification } from "src/notification/entities/notification.entity";
+import { NotificationToken } from "src/notification/entities/notification-token.entity";
 
 @Injectable()
 export class AuthService {
+
     constructor(
         private jwtService: JwtService,
         @InjectRepository(Users)
@@ -31,6 +33,8 @@ export class AuthService {
         @InjectRepository(EmailVerification)
         private emailVerifyRepository: Repository<EmailVerification>,
         private mailerService: MailerService,
+        @InjectRepository(NotificationToken)
+        private notificationTokenRepo: Repository<NotificationToken>,
     ) {
     }
 
@@ -241,6 +245,16 @@ export class AuthService {
                 pass: config.mail.pass
             }
         });
+    }
+
+    async logout(user_id: number) {
+        try {
+            const notification = await this.notificationTokenRepo.findOne({ where: { user: { id: user_id } } })
+            notification.notification_token = '';
+            return this.notificationTokenRepo.save(notification);
+        } catch (e) {
+            throw e;
+        }
     }
 
     async createMailOptions(email: string, emailToken: string) {

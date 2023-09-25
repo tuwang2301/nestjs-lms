@@ -16,6 +16,7 @@ import { AuthoritiesGuard } from './authorities.guard';
 import { EmailVerification } from './emailVerification.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationModule } from 'src/notification/notification.module';
+import { NotificationToken } from 'src/notification/entities/notification-token.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { NotificationModule } from 'src/notification/notification.module';
       Student,
       Teacher,
       EmailVerification,
-      Notification
+      Notification,
+      NotificationToken
     ]),
     UsersModule,
     NotificationModule,

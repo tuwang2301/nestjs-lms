@@ -8,6 +8,7 @@ import { NotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { Notification } from './entities/notification.entity';
 import { Users } from 'src/users/users.entity';
+import { Cron } from '@nestjs/schedule';
 
 firebase.initializeApp({
   credential: firebase.credential.cert(
@@ -25,27 +26,35 @@ export class NotificationService {
     private usersRepo: Repository<Users>
   ) { }
 
+  @Cron('45 * * * * *')
+  handleCron() {
+    this.sendPush(12, 'Hello', 'Test');
+    console.log('Hello');
+
+  }
+
+
   acceptPushNotification = async (
     user_id: number,
     notification_token_string: string,
   ): Promise<NotificationToken> => {
     try {
-      await this.notificationTokenRepo.update(
-        { user: { id: user_id } },
-        {
-          status: 'INACTIVE',
-        },
-      );
       const user = await this.usersRepo.findOne({ where: { id: user_id } });
       if (!user) {
         throw new Error('User not found')
       }
-      // save to db
-      const notification_token = await this.notificationTokenRepo.save({
-        user: user,
-        notification_token: notification_token_string,
-        status: 'ACTIVE',
-      });
+      const notification = await this.notificationTokenRepo.findOne({ where: { user: { id: user_id } } });
+      let notification_token = null;
+      if (notification) {
+        notification.notification_token = notification_token_string;
+        notification_token = await this.notificationTokenRepo.save(notification);
+      } else {
+        notification_token = await this.notificationTokenRepo.save({
+          user: user,
+          notification_token: notification_token_string,
+          status: 'ACTIVE',
+        });
+      }
       return notification_token;
     } catch (e) {
       throw e;
@@ -72,11 +81,13 @@ export class NotificationService {
     return await this.notificationsRepo.find();
   };
 
-  sendPush = async (user_id: number, title: string, body: string): Promise<void> => {
+  async sendPush(user_id: number, title: string, body: string) {
     try {
       const notification = await this.notificationTokenRepo.findOne({
         where: { user: { id: user_id }, status: 'ACTIVE' },
       });
+      console.log(notification);
+
       if (notification) {
         await this.notificationsRepo.save({
           notification_token: notification,
@@ -85,12 +96,11 @@ export class NotificationService {
           status: 'ACTIVE',
           created_by: 'TuWang',
         });
-        await firebase
+        return await firebase
           .messaging()
           .send({
             notification: { title, body },
             token: notification.notification_token,
-            android: { priority: 'high' },
           })
           .catch((error: any) => {
             console.error(error);

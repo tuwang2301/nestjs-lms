@@ -1,9 +1,11 @@
 import {
     Body,
     Controller,
+    Delete,
     Get, Param,
     Post, Put,
-    Request
+    Request,
+    Headers
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
@@ -15,6 +17,8 @@ import { UsersService } from "../users/users.service";
 import { VerifyEmailDto } from "./dto/verifyEmail.dto";
 import * as dayjs from "dayjs";
 import { NotificationService } from "src/notification/notification.service";
+import { Authorities } from "./authorities.decorator";
+import { Authority } from "src/common/globalEnum";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -110,5 +114,18 @@ export class AuthController {
     @Get("profile")
     getProfile(@Request() req) {
         return this.userService.getUserProfile(req.user.id);
+    }
+
+    @Put('logout')
+    @ApiOperation({ summary: 'Log out' })
+    @Authorities(Authority.Admin, Authority.Student, Authority.Student)
+    public async logout(@Headers() headers) {
+        const user = await this.userService.getUserByToken(headers.authorization);
+        try {
+            const isEmailVerified = await this.authService.logout(user.id);
+            return new ResponseObject(true, "LOGIN.EMAIL_VERIFIED", isEmailVerified);
+        } catch (error) {
+            return new ResponseObject(false, "LOGIN.ERROR", error.message);
+        }
     }
 }

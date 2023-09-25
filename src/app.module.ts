@@ -29,6 +29,7 @@ import { TimetableModule } from "./timetable/timetable.module";
 import { Timetable } from "./timetable/timetable.entity";
 import { NotificationModule } from './notification/notification.module';
 import { Notification } from "./notification/entities/notification.entity";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { Notification } from "./notification/entities/notification.entity";
                 },
             }
         }),
+        ScheduleModule.forRoot(),
         ConfigModule.forRoot(),
         TypeOrmModule.forRoot({
             type: "postgres",
