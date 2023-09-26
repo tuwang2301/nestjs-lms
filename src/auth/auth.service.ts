@@ -11,6 +11,7 @@ import { SignupDto } from "./dto/signup.dto";
 import { Student } from "../student/student.entity";
 import { Teacher } from "../teacher/teacher.entity";
 import { EmailVerification } from "./emailVerification.entity";
+import { NotificationToken } from "src/notification/entities/notification-token.entity";
 import config from "./config";
 import * as dayjs from "dayjs";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -18,18 +19,20 @@ import { MailerService } from "@nestjs-modules/mailer";
 @Injectable()
 export class AuthService {
     constructor(
-      private jwtService: JwtService,
-      @InjectRepository(Users)
-      private userRepository: Repository<Users>,
-      @InjectRepository(Role)
-      private roleRepository: Repository<Role>,
-      @InjectRepository(Student)
-      private studentRepository: Repository<Student>,
-      @InjectRepository(Teacher)
-      private teacherRepository: Repository<Teacher>,
-      @InjectRepository(EmailVerification)
-      private emailVerifyRepository: Repository<EmailVerification>,
-      private mailerService : MailerService
+        private jwtService: JwtService,
+        @InjectRepository(Users)
+        private userRepository: Repository<Users>,
+        @InjectRepository(Role)
+        private roleRepository: Repository<Role>,
+        @InjectRepository(Student)
+        private studentRepository: Repository<Student>,
+        @InjectRepository(Teacher)
+        private teacherRepository: Repository<Teacher>,
+        @InjectRepository(EmailVerification)
+        private emailVerifyRepository: Repository<EmailVerification>,
+        private mailerService: MailerService,
+        @InjectRepository(NotificationToken)
+        private notificationTokenRepo: Repository<NotificationToken>,
     ) {
     }
 
@@ -37,12 +40,12 @@ export class AuthService {
         console.time('time_start')
 
         const result = await this.userRepository
-          .createQueryBuilder("user")
-          .leftJoinAndSelect("user.roles", "roles")
-          .leftJoinAndSelect("user.teacher", "teacher")
-          .leftJoinAndSelect("user.student", "student")
-          .where("user.username = :username", { username })
-          .getOne();
+            .createQueryBuilder("user")
+            .leftJoinAndSelect("user.roles", "roles")
+            .leftJoinAndSelect("user.teacher", "teacher")
+            .leftJoinAndSelect("user.student", "student")
+            .where("user.username = :username", { username })
+            .getOne();
         console.timeEnd('time_start');
 
         return result;
@@ -50,12 +53,12 @@ export class AuthService {
 
     async findByEmail(email: string) {
         return await this.userRepository
-          .createQueryBuilder("user")
-          .leftJoinAndSelect("user.roles", "roles")
-          .leftJoinAndSelect("user.teacher", "teacher")
-          .leftJoinAndSelect("user.student", "student")
-          .where("user.email = :email", { email })
-          .getOne();
+            .createQueryBuilder("user")
+            .leftJoinAndSelect("user.roles", "roles")
+            .leftJoinAndSelect("user.teacher", "teacher")
+            .leftJoinAndSelect("user.student", "student")
+            .where("user.email = :email", { email })
+            .getOne();
 
         // return await this.userRepository.findOne({
         //     relations: {
@@ -71,9 +74,9 @@ export class AuthService {
 
     async findEmailVerification(email: string) {
         return await this.emailVerifyRepository
-          .createQueryBuilder("email_verification")
-          .where("email_verification.email = :email", { email })
-          .getOne();
+            .createQueryBuilder("email_verification")
+            .where("email_verification.email = :email", { email })
+            .getOne();
         // return await this.emailVerifyRepository.findOne({
         //     where: {
         //         email: email
@@ -85,12 +88,12 @@ export class AuthService {
     async signIn(username: string, pass: string) {
         try {
             let user = await this.findByUsername(username) ?
-              await this.findByUsername(username): await this.findByEmail(username);
+                await this.findByUsername(username) : await this.findByEmail(username);
             if (!user) {
                 throw new Error("Not found user by username/email");
             }
 
-            if(!user.is_valid){
+            if (!user.is_valid) {
                 throw new Error("Email of user not verified");
             }
 
@@ -106,10 +109,10 @@ export class AuthService {
             return {
                 user,
                 access_token: await this.jwtService.signAsync(
-                  payload,
-                  {
-                      expiresIn: '45m',
-                  }
+                    payload,
+                    {
+                        expiresIn: '45m',
+                    }
                 )
             };
         } catch (e) {
@@ -212,10 +215,10 @@ export class AuthService {
 
     async createEmailToken(email: string) {
         const emailVerification
-          = await this.emailVerifyRepository
-          .createQueryBuilder("email_verification")
-          .where("email_verification.email = :email", { email })
-          .getOne();
+            = await this.emailVerifyRepository
+                .createQueryBuilder("email_verification")
+                .where("email_verification.email = :email", { email })
+                .getOne();
         if (!emailVerification) {
             const newEmail = await this.createEmailVerification(email);
             return await this.emailVerifyRepository.save(newEmail);
@@ -241,14 +244,25 @@ export class AuthService {
         });
     }
 
+    async logout(user_id: number) {
+        try {
+            const notification = await this.notificationTokenRepo.findOne({ where: { user: { id: user_id } } })
+            notification.notification_token = '';
+            notification.status = 'INACTIVE'
+            return this.notificationTokenRepo.save(notification);
+        } catch (e) {
+            throw e;
+        }
+    }
+
     async createMailOptions(email: string, emailToken: string) {
         return {
-            from:"quangtu2301@gmail.com",
+            from: "quangtu2301@gmail.com",
             to: email, // list of receivers (separated by ,)
             subject: "Verify Email",
             text: "Verify Email",
             html: "Hi! Thanks for your registration" +
-              "<p>Here is your token <b>" + emailToken + "</b>"
+                "<p>Here is your token <b>" + emailToken + "</b>"
             // '<a href=' + config.host.url + ':' + config.host.port + "/auth/verify/" + model.emailToken + "\">Click here to activate your account</a>"  // html body
         };
     }
@@ -256,21 +270,21 @@ export class AuthService {
     async sendEmailVerification(email: string) {
         try {
             const model
-              = await this.emailVerifyRepository
-              .createQueryBuilder("email_verification")
-              .where("email_verification.email = :email", { email })
-              .getOne();
+                = await this.emailVerifyRepository
+                    .createQueryBuilder("email_verification")
+                    .where("email_verification.email = :email", { email })
+                    .getOne();
 
             if (model && model.emailToken) {
                 // const transporter = await this.createTransporter();
                 const mailOptions = await this.createMailOptions(email, model.emailToken);
                 let sent
-                = await this.mailerService.sendMail(mailOptions)
-                  .then(() => true)
-                  .catch((error) => {
-                      console.log(error.message);
-                      return false;
-                  })
+                    = await this.mailerService.sendMail(mailOptions)
+                        .then(() => true)
+                        .catch((error) => {
+                            console.log(error.message);
+                            return false;
+                        })
                 return sent;
             } else {
                 throw new Error("REGISTER.USER_NOT_REGISTERED");
@@ -283,16 +297,16 @@ export class AuthService {
     async verifyEmail(email: string, token: string) {
         try {
             const user = await this.userRepository.findOne(
-              {
-                  relations: {
-                      roles: true,
-                      student: true,
-                      teacher: true
-                  },
-                  where: {
-                      email: email
-                  }
-              });
+                {
+                    relations: {
+                        roles: true,
+                        student: true,
+                        teacher: true
+                    },
+                    where: {
+                        email: email
+                    }
+                });
             if (!user) {
                 throw new Error("Not found user");
             }
