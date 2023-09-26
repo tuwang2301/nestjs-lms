@@ -251,7 +251,6 @@ export class AuthService {
         try {
             const notification = await this.notificationTokenRepo.findOne({ where: { user: { id: user_id } } })
             notification.notification_token = '';
-            notification.status = 'INACTIVE'
             return this.notificationTokenRepo.save(notification);
         } catch (e) {
             throw e;
