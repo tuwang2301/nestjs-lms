@@ -9,6 +9,9 @@ import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { Notification } from './entities/notification.entity';
 import { Users } from 'src/users/users.entity';
 import { Cron } from '@nestjs/schedule';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { TeacherService } from 'src/teacher/teacher.service';
+import dayjs = require('dayjs');
 
 firebase.initializeApp({
   credential: firebase.credential.cert(
@@ -23,13 +26,49 @@ export class NotificationService {
     @InjectRepository(NotificationToken)
     private notificationTokenRepo: Repository<NotificationToken>,
     @InjectRepository(Users)
-    private usersRepo: Repository<Users>
+    private usersRepo: Repository<Users>,
+    private enrollService: EnrollmentService,
+    private teacherService: TeacherService,
   ) { }
 
-  @Cron('45 * * * * *')
-  handleCron() {
-    this.sendPush(12, 'Hello', 'Test');
-    console.log('Hello');
+  @Cron('0 5 * * * *')
+  async handleCron() {
+    const activeList = await this.notificationTokenRepo.find({
+      relations: {
+        user: {
+          student: true,
+          teacher: true
+        }
+      },
+      where: { status: 'ACTIVE' }
+    })
+    const today = dayjs().format('dddd').toLowerCase();
+    const nextTimeFrame = dayjs().hour() + 1;
+    if ([8, 14, 16, 18].includes(nextTimeFrame)) {
+      // Create a Day.js object for 11:00 AM today
+      const targetTime = dayjs().set('hour', nextTimeFrame).set('minute', 0).set('second', 0);
+
+      // Get the current time
+      const currentTime = dayjs();
+
+      // Calculate the time left
+      const timeLeft = targetTime.diff(currentTime, 'minute');
+
+      if (timeLeft < 15) {
+        activeList.forEach(async (token) => {
+          let courses = [];
+          if (token.user.student) {
+            courses = (await this.enrollService.getCoursesOfStudent(token.user.student.id)).map(enroll => enroll.course);
+          } else if (token.user.teacher) {
+            courses = await this.teacherService.getAllCoursesOfTeacher(token.user.teacher.id)
+          }
+          const todayCourse = courses.find(course => course.timetables.find(time => (time.weekday === today && time.timeframe.startsWith(nextTimeFrame.toString()))))
+          if (todayCourse) (
+            await this.sendPush(token.user.id, `${todayCourse.name} IS COMING AFTER ${timeLeft} MINUTES`, `Please attend ${todayCourse.name} on time`)
+          )
+        })
+      }
+    }
 
   }
 
@@ -47,6 +86,7 @@ export class NotificationService {
       let notification_token = null;
       if (notification) {
         notification.notification_token = notification_token_string;
+        notification.status = 'ACTIVE'
         notification_token = await this.notificationTokenRepo.save(notification);
       } else {
         notification_token = await this.notificationTokenRepo.save({
@@ -89,17 +129,10 @@ export class NotificationService {
       console.log(notification);
 
       if (notification) {
-        await this.notificationsRepo.save({
-          notification_token: notification,
-          title,
-          body,
-          status: 'ACTIVE',
-          created_by: 'TuWang',
-        });
         return await firebase
           .messaging()
           .send({
-            notification: { title, body },
+            notification: { title, body, imageUrl: 'https://img.freepik.com/premium-vector/flat-web-template-with-lms-concept-design-concept-learning-management-system_100456-8728.jpg' },
             token: notification.notification_token,
           })
           .catch((error: any) => {

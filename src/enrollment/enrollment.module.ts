@@ -13,5 +13,6 @@ import { Role } from "../role/role.entity";
   imports: [TypeOrmModule.forFeature([Enrollment, Student, Course, Users, Role])],
   controllers: [EnrollmentController],
   providers: [EnrollmentService, UsersService],
+  exports: [EnrollmentService],
 })
-export class EnrollmentModule {}
+export class EnrollmentModule { }
